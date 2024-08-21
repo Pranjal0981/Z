@@ -4,6 +4,7 @@ const initialState = {
     posts: [], // To store multiple posts
     loading: false, // To track loading state
     error: null, // To track any errors
+    comments:[]
 };
 
 export const postSlice = createSlice({
@@ -28,8 +29,11 @@ export const postSlice = createSlice({
             state.loading = false;
             state.error = null;
         },
+        saveComments:(state,action)=>{
+            state.comments=action.payload
+        }
     },
 });
 
-export const { savePosts, setLoading, setError, removePosts } = postSlice.actions;
+export const { savePosts,saveComments, setLoading, setError, removePosts } = postSlice.actions;
 export default postSlice.reducer;

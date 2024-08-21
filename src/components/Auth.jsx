@@ -203,7 +203,7 @@ export const Profile = () => {
                     <Col>
                         <Avatar
                             size={120}
-                            src="https://joeschmoe.io/api/v1/random" // Placeholder avatar
+                            src="https://static.vecteezy.com/system/resources/thumbnails/002/318/271/small/user-profile-icon-free-vector.jpg" // Placeholder avatar
                             className="mb-4 shadow-md"
                         />
                     </Col>
@@ -235,12 +235,7 @@ export const Profile = () => {
                     </Col>
                 </Row>
                 <Divider />
-                <Row>
-                    <Col span={24}>
-                        <Title level={4} className="text-indigo-600">Additional Information</Title>
-                        <Text className="text-gray-700">Here you can add more details about the user or include additional sections if needed.</Text>
-                    </Col>
-                </Row>
+              
             </Card>
         </div>
     );

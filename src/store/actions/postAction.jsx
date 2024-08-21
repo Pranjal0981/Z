@@ -1,6 +1,6 @@
 import { message } from 'antd'; // Ant Design message component for notifications
 import axios from '../../config/axios'; // Axios for making HTTP requests
-import { savePosts, setError, setLoading } from "../reducers/postSlice"; // Redux action to save post data
+import { saveComments, savePosts, setError, setLoading } from "../reducers/postSlice"; // Redux action to save post data
 
 // Action to create a new post
 export const asyncCreateNewPost = (data, userId) => async (dispatch) => {
@@ -21,7 +21,7 @@ export const asyncViewPosts = () => async (dispatch) => {
     dispatch(setLoading()); // Set loading to true
     try {
         const response = await axios.get(`/post/view-posts`);
-        dispatch(savePosts(response.data.posts)); // Save posts to Redux store
+       await dispatch(savePosts(response.data.posts)); // Save posts to Redux store
         message.success('Posts fetched successfully!'); // Success toast notification
     } catch (error) {
         dispatch(setError(error.message)); // Save the error message
@@ -66,3 +66,33 @@ export const asyncDeletePostById = (postId) => async (dispatch) => {
         message.error('Failed to delete post. Please try again.'); // Error toast notification
     }
 };
+
+
+export const asyncSearchPost=(searchTerm)=>async(dispatch,getState)=>{
+    try {
+        const response = await axios.get(`/post/search?title=${searchTerm}`);
+       await dispatch(savePosts(response.data)); // Ensure this matches your data structure
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const asyncFetchComments=(postId)=>async(dispatch,getState)=>{
+    try {
+        const response=await axios.get(`/post/fetchComments/${postId}`)
+        await dispatch(saveComments(response.data.comments))
+    } catch (error) {
+     console.log(error)   
+    }
+}
+
+export const asyncAddComments=(postId,userId,data)=>async(dispatch,getState)=>{
+    try {
+        console.log(postId,userId,data)
+        const response=await axios.post(`/post/addComments/${postId}/${userId}`,{data})
+        await dispatch(saveComments(response.data.comments))
+        await dispatch(asyncFetchComments(postId))
+    } catch (error) {
+        console.log(error)
+    }
+}

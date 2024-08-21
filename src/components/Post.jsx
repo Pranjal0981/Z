@@ -1,9 +1,11 @@
-import { Form, Input, Button,Col,Row,Spin, Card, Typography, message } from 'antd';
+import { Form, Input, Button,Col,Row,Spin, Card, Typography, message,Modal } from 'antd';
 import 'antd/dist/reset.css';;
-import { asyncCreateNewPost, asyncDeletePostById, asyncUpdatePostById, asyncViewPostById, asyncViewPosts } from '../store/actions/postAction';
+import { asyncAddComments, asyncCreateNewPost, asyncDeletePostById, asyncFetchComments, asyncSearchPost, asyncUpdatePostById, asyncViewPostById, asyncViewPosts } from '../store/actions/postAction';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { CommentOutlined } from '@ant-design/icons'; // Import the Comment icon
+
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 
@@ -11,20 +13,42 @@ const { TextArea } = Input;
 
 
 export const ViewPost = () => {
+    const highlightText = (text, query) => {
+        if (!query.trim()) return text;
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.split(regex).map((part, index) =>
+            regex.test(part) ? (
+                <span key={index} style={{ backgroundColor: 'yellow' }}>
+                    {part}
+                </span>
+            ) : (
+                part
+            )
+        );
+    };
+    
+    const [searchQuery, setSearchQuery] = useState('');
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { posts, loading, error } = useSelector(state => state.post);
 
     useEffect(() => {
-        dispatch(asyncViewPosts());
-    }, [dispatch]);
+        if (searchQuery) {
+            dispatch(asyncSearchPost(searchQuery));
+        } else {
+            dispatch(asyncViewPosts());
+        }
+    }, [dispatch, searchQuery]);
 
     const handleDelete = (id) => {
-        // Confirm before deleting
         const confirm = window.confirm('Are you sure you want to delete this post?');
         if (confirm) {
             dispatch(asyncDeletePostById(id));
         }
+    };
+
+    const handleSearch = (e) => {
+        setSearchQuery(e.target.value);
     };
 
     if (loading) {
@@ -32,19 +56,25 @@ export const ViewPost = () => {
             <div className="flex justify-center items-center h-screen">
                 <Spin size="large" />
             </div>
-        ); // Loading spinner
+        );
     }
 
     if (error) {
-        message.error('Failed to load posts.'); // Error toast notification
+        message.error('Failed to load posts.');
         return null;
     }
 
     return (
         <div className="p-4 max-w-6xl mx-auto">
             <Title level={2} className="text-center mb-4">All Posts</Title>
+            <Input
+                placeholder="Search posts..."
+                value={searchQuery}
+                onChange={handleSearch}
+                className="mb-4"
+            />
             <Row gutter={16}>
-                {posts && posts.length > 0 ? (
+                {posts && posts?.length > 0 ? (
                     posts.map(post => (
                         <Col key={post._id} xs={24} sm={12} md={8} lg={6} className="mb-4">
                             <Card
@@ -56,8 +86,12 @@ export const ViewPost = () => {
                                     <Button type="link" danger onClick={() => handleDelete(post._id)}>Delete</Button>
                                 ]}
                             >
-                                <Title level={4}>{post.title}</Title>
-                                <Paragraph ellipsis={{ rows: 2, expandable: true }}>{post.excerpt}</Paragraph>
+                                <Title level={4}>
+                                    {highlightText(post.title, searchQuery)}
+                                </Title>
+                                <Paragraph ellipsis={{ rows: 2, expandable: true }}>
+                                    {highlightText(post.excerpt, searchQuery)}
+                                </Paragraph>
                             </Card>
                         </Col>
                     ))
@@ -71,20 +105,28 @@ export const ViewPost = () => {
             </Row>
         </div>
     );
-};
+}
+;
+
+
+
 
 
 
 
 export const ViewPostById = () => {
-    const { id } = useParams(); // Get id from the URL
+    const { id } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { posts, loading, error } = useSelector(state => state.post);
-
+    const { posts, comments, loading, error } = useSelector(state => state.post);
+    const { user, isAuth } = useSelector(state => state.user);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [comment, setComment] = useState('');
+    console.log(comments)
     useEffect(() => {
         if (id) {
             dispatch(asyncViewPostById(id));
+            dispatch(asyncFetchComments(id)); // Fetch comments for the post
         }
     }, [dispatch, id]);
 
@@ -92,14 +134,36 @@ export const ViewPostById = () => {
         navigate(-1);
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (id) {
-            // Confirm before deleting
             const confirm = window.confirm('Are you sure you want to delete this post?');
             if (confirm) {
-                dispatch(asyncDeletePostById(id, navigate));
+                await dispatch(asyncDeletePostById(id, navigate));
             }
         }
+    };
+
+    const showModal = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleOk = async () => {
+        if (comment.trim()) {
+            try {
+                await dispatch(asyncAddComments(id, user?._id, comment));
+                setComment('');
+                setIsModalVisible(false);
+            } catch (error) {
+                message.error('Failed to add comment. Please try again.');
+                console.error(error);
+            }
+        } else {
+            message.error('Comment cannot be empty.');
+        }
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
     };
 
     if (loading) {
@@ -107,22 +171,25 @@ export const ViewPostById = () => {
             <div className="flex justify-center items-center h-screen">
                 <Spin size="large" />
             </div>
-        ); // Loading spinner
+        );
     }
 
     if (error) {
-        message.error('Failed to load post.'); // Error toast notification
+        message.error('Failed to load post.');
         return null;
     }
 
     return (
         <div className="p-4 max-w-4xl mx-auto">
             <Card
-                className="shadow-lg rounded-lg"
+                className="shadow-lg rounded-lg mb-4"
                 actions={[
                     <Button type="primary" onClick={handleBack}>Back</Button>,
                     <Button type="link" href={`/update-post/${id}`}>Edit</Button>,
                     <Button type="link" danger onClick={handleDelete}>Delete</Button>,
+                    <Button type="link" onClick={showModal}>
+                        <CommentOutlined /> 
+                    </Button>,
                 ]}
             >
                 <Title level={2} className="text-center mb-4">{posts?.title || 'Post Title'}</Title>
@@ -130,12 +197,56 @@ export const ViewPostById = () => {
                     {posts?.content || 'Post content goes here...'}
                 </Paragraph>
             </Card>
+
+            {/* Comments Section */}
+            <div className="comments-section mb-4">
+                {comments?.length > 0 ? (
+                    comments.map(comment => (
+                        <Card key={comment._id} className="mb-4 shadow-sm rounded-lg">
+                            <div className="flex items-center mb-2">
+                               
+                                <div className="ml-3">
+                                    <Title level={5} className="mb-0">{comment?.userId?.firstName} {comment.userId.lastName}</Title>
+                                    <Paragraph>{comment.text}</Paragraph>
+
+                                </div>
+                            </div>
+                        </Card>
+                    ))
+                ) : (
+                    <Paragraph>No comments yet.</Paragraph>
+                )}
+            </div>
+
+            {/* Modal for adding comments */}
+            <Modal
+                title="Add Comment"
+                visible={isModalVisible}
+                onOk={handleOk}
+                onCancel={handleCancel}
+                footer={[
+                    <Button key="back" onClick={handleCancel}>
+                        Cancel
+                    </Button>,
+                    <Button key="submit" type="primary" onClick={handleOk}>
+                        Add Comment
+                    </Button>,
+                ]}
+            >
+                <Form layout="vertical">
+                    <Form.Item>
+                        <Input.TextArea
+                            rows={4}
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Enter your comment"
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };
-
-
-
 
 export const PublishPost = () => {
     const [form] = Form.useForm();
@@ -311,8 +422,3 @@ export const UpdatePost = () => {
     );
 };
 
-export const DeletePost=()=>{
-    return<>
-    
-    </>
-}

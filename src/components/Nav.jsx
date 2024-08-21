@@ -38,7 +38,7 @@ const Navbar = () => {
     <nav className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 shadow-lg">
       <div className="container mx-auto flex justify-between items-center">
         <div className="text-white text-xl font-bold tracking-wider">
-          <Link to="/">MyApp</Link>
+          <Link to="/">Zupay</Link>
         </div>
         <div className="hidden md:flex space-x-6">
           <Link to="/profile">
