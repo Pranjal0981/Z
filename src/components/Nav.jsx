@@ -3,9 +3,20 @@ import { Menu, Dropdown, Button } from 'antd';
 import { DownOutlined, UserOutlined, LogoutOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 import 'tailwindcss/tailwind.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux'; // Import useDispatch
+import { asyncSignOut } from '../store/actions/userAction'; // Import your action creator
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch(); // Get dispatch function from useDispatch
+
+  const handleLogout = async () => {
+   
+      await dispatch(asyncSignOut(navigate)); // Dispatch the asyncSignOut action
+    
+  };
+
   const menu = (
     <Menu>
       <Menu.Item key="1" icon={<UserOutlined />}>
@@ -17,8 +28,8 @@ const Navbar = () => {
       <Menu.Item key="3" icon={<EditOutlined />}>
         <Link to="/publish-post">Publish Post</Link>
       </Menu.Item>
-      <Menu.Item key="4" icon={<LogoutOutlined />}>
-        <Link to="/logout">Logout</Link>
+      <Menu.Item key="4" icon={<LogoutOutlined />} onClick={handleLogout}>
+        Logout
       </Menu.Item>
     </Menu>
   );
@@ -45,11 +56,9 @@ const Navbar = () => {
               <EditOutlined /> Publish Post
             </Button>
           </Link>
-          <Link to="/logout">
-            <Button type="text" className="text-white hover:bg-indigo-500">
-              <LogoutOutlined /> Logout
-            </Button>
-          </Link>
+          <Button type="text" className="text-white hover:bg-indigo-500" onClick={handleLogout}>
+            <LogoutOutlined /> Logout
+          </Button>
         </div>
         <div className="md:hidden">
           <Dropdown overlay={menu} trigger={['click']}>

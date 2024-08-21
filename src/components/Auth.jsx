@@ -176,13 +176,13 @@ export const Login = () => {
   
 
 export const Profile = () => {
-    const dispatch=useDispatch()
-    const {user} = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+    const { user } = useSelector((state) => state.user);
 
-    useEffect(()=>{
-        dispatch(asyncCurrentUser())
-    },[dispatch,user._id])
-console.log(user)
+    useEffect(() => {
+        dispatch(asyncCurrentUser());
+    }, [dispatch, user?._id]);
+
     if (!user) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -192,46 +192,58 @@ console.log(user)
     }
 
     return (
-        <div style={{ padding: '20px', maxWidth: '800px', margin: 'auto' }}>
+        <div className="p-4 max-w-3xl mx-auto">
             <Card
-                title={<Title level={2} style={{ textAlign: 'center' }}>User Profile</Title>}
+                title={<Title level={2} className="text-center text-gray-800">User Profile</Title>}
                 bordered={false}
-                style={{ boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', borderRadius: '8px' }}
+                className="shadow-lg rounded-lg"
+                style={{ backgroundColor: '#f8f9fa' }}
             >
                 <Row justify="center" style={{ marginBottom: '20px' }}>
                     <Col>
                         <Avatar
-                            size={100}
+                            size={120}
                             src="https://joeschmoe.io/api/v1/random" // Placeholder avatar
-                            style={{ marginBottom: '16px' }}
+                            className="mb-4 shadow-md"
                         />
                     </Col>
                 </Row>
-                <Row gutter={24}>
+                <Row gutter={[24, 24]} className="mb-6">
                     <Col span={12}>
-                        <Title level={4}>User Information</Title>
-                        <div style={{ marginBottom: '16px' }}>
-                            <Text strong>Email:</Text> <Text>{user.email}</Text>
+                        <Title level={4} className="text-indigo-600">User Information</Title>
+                        <div className="mb-4">
+                            <Text strong className="text-gray-600">Email:</Text> <Text>{user.email}</Text>
                         </div>
-                        <div style={{ marginBottom: '16px' }}>
-                            <Text strong>First Name:</Text> <Text>{user.firstName || 'N/A'}</Text>
+                        <div className="mb-4">
+                            <Text strong className="text-gray-600">First Name:</Text> <Text>{user.firstName || 'N/A'}</Text>
                         </div>
-                        <div style={{ marginBottom: '16px' }}>
-                            <Text strong>Last Name:</Text> <Text>{user.lastName || 'N/A'}</Text>
+                        <div className="mb-4">
+                            <Text strong className="text-gray-600">Last Name:</Text> <Text>{user.lastName || 'N/A'}</Text>
+                        </div>
+                    </Col>
+                    <Col span={12}>
+                        <Title level={4} className="text-indigo-600">Account Details</Title>
+                        <div className="mb-4">
+                            <Text strong className="text-gray-600">User ID:</Text> <Text>{user._id}</Text>
+                        </div>
+                        <div className="mb-4">
+                            <Text strong className="text-gray-600">Joined:</Text> <Text>{new Date(user.createdAt).toLocaleDateString()}</Text>
+                        </div>
+                        <div className="mb-4">
+                            <Text strong className="text-gray-600">Status:</Text> <Text>{user.status || 'Active'}</Text>
                         </div>
                     </Col>
                 </Row>
                 <Divider />
                 <Row>
                     <Col span={24}>
-                        <Title level={4}>Additional Information</Title>
-                        <Text>Here you can add more details about the user or include additional sections if needed.</Text>
+                        <Title level={4} className="text-indigo-600">Additional Information</Title>
+                        <Text className="text-gray-700">Here you can add more details about the user or include additional sections if needed.</Text>
                     </Col>
                 </Row>
             </Card>
         </div>
     );
 };
-
 
 

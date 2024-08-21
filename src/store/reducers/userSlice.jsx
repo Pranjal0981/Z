@@ -16,10 +16,6 @@ export const userSlice = createSlice({
             state.user = action.payload;
             state.isAuth = true;
         },
-        saveTokenExpiration: (state, action) => {
-            localStorage.setItem("tokenExpiration", action.payload);
-            state.tokenExpiration = action.payload;
-        },
         removeUser: (state) => {
             localStorage.removeItem("user");
             state.user = null;
