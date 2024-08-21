@@ -1,19 +1,25 @@
-import { removeUser, saveUser } from "../reducers/userSlice";
+import { removeUser, saveUser } from "../reducers/userSlice"; // Redux actions to manage user state
+import { message } from 'antd'; // Ant Design message component for notifications
+import axios from '../../config/axios'; // Axios for making HTTP requests
 
-export const asyncCurrentUser = () => async (dispatch, getState) => {
+/**
+ * Async action to fetch the current user from the backend.
+ * It checks for a valid token and retrieves the user information if available.
+ * If the token is expired or missing, it clears the user data.
+ */
+export const asyncCurrentUser = () => async (dispatch) => {
     try {
         // Retrieve token and token expiration time from localStorage
         const token = localStorage.getItem('token');
         const tokenExpiration = localStorage.getItem('tokenExpiration');
 
-        // Check if token is expired or not available
+        // If token is not available or has expired, clear the user data
         if (!token || tokenExpiration < Date.now()) {
-            // If token is not found or expired, dispatch an action to clear the current user
-            dispatch(saveUser(null));
+            dispatch(saveUser(null)); // Dispatch action to clear user data
             return;
         }
 
-        // Make a request to fetch the current user using the token
+        // Make an authenticated request to fetch the current user
         const response = await axios.post('/user/currentUser', null, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -21,60 +27,95 @@ export const asyncCurrentUser = () => async (dispatch, getState) => {
         // Dispatch action to save the current user in the Redux store
         dispatch(saveUser(response.data.user));
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching current user:', error);
+        // Optionally clear user data if fetching current user fails
+        dispatch(saveUser(null));
     }
 };
 
-export const asyncSignupUser = (data) => async (dispatch) => {
+/**
+ * Async action to sign up a new user.
+ * It sends user data to the backend and, upon success, saves the user and displays a success message.
+ * If the email already exists, an error message is displayed.
+ */
+export const asyncSignupUser = (userData) => async (dispatch) => {
     try {
-        const response = await axios.post('/user/signup', data);
-        console.log(response);
-        dispatch(saveUser(response.data));
-        toast.success("SignUp Successfully !")
+        // Log the user data to check its format
+        console.log('User Data:', userData);
+        
+        // Make a POST request to the signup endpoint with the user data
+        const response = await axios.post('/user/signup', userData);
+        console.log('Signup Response:', response);
+
+        // Dispatch action to save the new user in the Redux store
+        dispatch(saveUser(response.data.user)); // Ensure you are saving the correct data
+
+        // Show success message
+        message.success("SignUp Successfully!");
     } catch (error) {
-        console.error(error);
-        toast.error('Email Already exist.');
+        console.error('Error during signup:', error);
+
+        // Show error message if signup fails
+        message.error('Email already exists or signup failed.');
     }
 };
-
-
-export const asyncSignIn = (data) => async (dispatch, getState) => {
+  
+/**
+ * Async action to log in a user.
+ * It authenticates the user, saves the token and its expiration time, and fetches the current user.
+ * If the credentials are invalid, an error message is displayed.
+ */
+export const asyncSignIn = (data,navigate) => async (dispatch) => {
     try {
+        // Log the login data to check its format
+        console.log('Login Data:', data);
+
+        // Make a request to log in the user
         const response = await axios.post('/user/login', data);
-        const expiresInMilliseconds = response.data.expiresIn;
+        console.log('Login Response:', response);
 
-        // Calculate token expiration time
-        const expirationTime = Date.now() + expiresInMilliseconds;
-
-        // Save token and expiration time in localStorage
+        // Save the token and expiration time in localStorage
         localStorage.setItem('token', response.data.token);
+        const expirationTime = Date.now() + (60 * 60 * 1000); // Token expires in 1 hour
         localStorage.setItem('tokenExpiration', expirationTime);
 
-        // Dispatch action to save token expiration in Redux store
-        await dispatch(saveTokenExpiration(expirationTime));
+        // Fetch the current user after successful login
+        await dispatch(asyncCurrentUser());
 
-        // Fetch current user after successful login
-        dispatch(asyncCurrentUser());
-
-        toast.success("LoggedIn Successfully !");
+        // Display a success message using Ant Design's message component
+        message.success("Logged in Successfully!");
+        await navigate('/profile')
     } catch (error) {
         if (error.response && error.response.status === 401) {
-            toast.error('Invalid email or password. Please try again.');
+            // Display an error message if the credentials are invalid
+            message.error('Invalid email or password. Please try again.');
         } else {
-            console.error(error);
-            toast.error('An error occurred. Please try again later.');
+            console.error('Error during login:', error);
+            // Display a generic error message for other errors
+            message.error('An error occurred. Please try again later.');
         }
     }
 };
 
-export const asyncSignOut=(navigate)=>async(dispacth,getState)=>{
+/**
+ * Async action to log out a user.
+ * It clears the user data, displays a success message, and navigates to the home page.
+ */
+export const asyncSignOut = (navigate) => async (dispatch) => {
     try {
-        const response=await axios.get('/user/logout')
-        dispacth(removeUser())
-        toast.success("Logout Successfully !")
-        navigate('/')
-    } catch (error) {
-        console.log(error)
+        // Make a request to log out the user
+        const response = await axios.get('/user/logout');
+        console.log('Logout Response:', response);
 
+        // Dispatch action to remove the user from the Redux store
+        dispatch(removeUser());
+
+        // Display a success message using Ant Design's message component
+        message.success("Logout Successfully!");
+
+        // Navigate to the home page after logout
+        navigate('/');
+    } catch (error) {
+        console.error('Error during logout:', error);
     }
-}
+};
