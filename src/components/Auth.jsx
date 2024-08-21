@@ -127,7 +127,6 @@ export const Login = () => {
         setLoading(true); // Set loading to true when starting the request
         try {
             await dispatch(asyncSignIn(values, navigate));
-            message.success('Login successful!');
         } catch (error) {
             message.error('Login failed. Please try again.');
         } finally {

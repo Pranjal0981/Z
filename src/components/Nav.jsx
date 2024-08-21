@@ -23,11 +23,12 @@ const Navbar = () => {
           <Menu.Item key="1" icon={<UserOutlined />}>
             <Link to="/profile">Profile</Link>
           </Menu.Item>
-          <Menu.Item key="5" icon={<UserOutlined />}>
-          <Link to="/login">Login</Link>
-        </Menu.Item>
+
           <Menu.Item key="3" icon={<EditOutlined />}>
             <Link to="/publish-post">Publish Post</Link>
+          </Menu.Item>
+          <Menu.Item key="3" icon={<EditOutlined />}>
+            <Link to="/view-posts">View Post</Link>
           </Menu.Item>
           <Menu.Item key="4" icon={<LogoutOutlined />} onClick={handleLogout}>
             Logout
@@ -52,7 +53,7 @@ const Navbar = () => {
     <nav className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 shadow-lg">
       <div className="container mx-auto flex justify-between items-center">
         <div className="text-white text-xl font-bold tracking-wider">
-          <Link to="/">Zupay</Link>
+          <Link to="/">ZuAI</Link>
         </div>
         <div className="hidden md:flex space-x-6">
           {isAuth ? (

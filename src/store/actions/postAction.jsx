@@ -56,14 +56,15 @@ export const asyncUpdatePostById = (postId, data,navigate) => async (dispatch) =
 };
 
 // Action to delete a post by ID
-export const asyncDeletePostById = (postId) => async (dispatch) => {
+export const asyncDeletePostById = (postId,navigate) => async (dispatch) => {
     try {
         await axios.delete(`/post/delete-post/${postId}`);
         await dispatch(asyncViewPosts())
+        await dispatch(asyncFetchComments(postId))
         message.success('Post deleted successfully!'); // Success toast notification
+       await navigate('/view-posts')
     } catch (error) {
         console.error(error);
-        message.error('Failed to delete post. Please try again.'); // Error toast notification
     }
 };
 

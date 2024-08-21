@@ -12,7 +12,20 @@ const { TextArea } = Input;
 
 
 
+
 export const ViewPost = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const dispatch = useDispatch();
+    const { posts, loading, error } = useSelector(state => state.post);
+    const { user } = useSelector(state => state.user); // Get the logged-in user's ID from Redux
+    useEffect(() => {
+        if (searchQuery) {
+            dispatch(asyncSearchPost(searchQuery));
+        } else {
+            dispatch(asyncViewPosts());
+        }
+    }, [dispatch, searchQuery]);
+
     const highlightText = (text, query) => {
         if (!query.trim()) return text;
         const regex = new RegExp(`(${query})`, 'gi');
@@ -26,23 +39,16 @@ export const ViewPost = () => {
             )
         );
     };
-    
-    const [searchQuery, setSearchQuery] = useState('');
-    const dispatch = useDispatch();
-    const { posts, loading, error } = useSelector(state => state.post);
+    const navigate=useNavigate()
 
-    useEffect(() => {
-        if (searchQuery) {
-            dispatch(asyncSearchPost(searchQuery));
-        } else {
-            dispatch(asyncViewPosts());
-        }
-    }, [dispatch, searchQuery]);
-
-    const handleDelete = (id) => {
-        const confirm = window.confirm('Are you sure you want to delete this post?');
-        if (confirm) {
-            dispatch(asyncDeletePostById(id));
+    const handleDelete = async(post) => {
+        const confirmDelete = window.confirm('Are you sure you want to delete this post?');
+        if (confirmDelete) {
+            if (user._id === post.userId) { // Check if the userId matches the post's authorId
+               await dispatch(asyncDeletePostById(post._id,navigate));
+            } else {
+                message.error('You do not have permission to delete this post.');
+            }
         }
     };
 
@@ -71,9 +77,10 @@ export const ViewPost = () => {
                 value={searchQuery}
                 onChange={handleSearch}
                 className="mb-4"
+                disabled={!posts || posts.length === 0} // Disable search input if no posts are available
             />
             <Row gutter={16}>
-                {posts && posts?.length > 0 ? (
+                {posts && posts.length > 0 ? (
                     posts.map(post => (
                         <Col key={post._id} xs={24} sm={12} md={8} lg={6} className="mb-4">
                             <Card
@@ -82,7 +89,7 @@ export const ViewPost = () => {
                                 actions={[
                                     <Button type="link" href={`/view-post/${post._id}`}>View</Button>,
                                     <Button type="link" href={`/update-post/${post._id}`}>Update</Button>,
-                                    <Button type="link" danger onClick={() => handleDelete(post._id)}>Delete</Button>
+                                    <Button type="link" danger onClick={() => handleDelete(post)}>Delete</Button>
                                 ]}
                             >
                                 <Title level={4}>
@@ -104,12 +111,7 @@ export const ViewPost = () => {
             </Row>
         </div>
     );
-}
-;
-
-
-
-
+};
 
 
 
@@ -121,7 +123,7 @@ export const ViewPostById = () => {
     const { user } = useSelector(state => state.user);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [comment, setComment] = useState('');
-    console.log(comments)
+
     useEffect(() => {
         if (id) {
             dispatch(asyncViewPostById(id));
@@ -143,13 +145,24 @@ export const ViewPostById = () => {
     };
 
     const showModal = () => {
-        setIsModalVisible(true);
+        if (!user) {
+            message.warning('You must be logged in to add a comment.');
+            navigate('/login'); // Redirect to home or login page
+        } else {
+            setIsModalVisible(true);
+        }
     };
 
     const handleOk = async () => {
+        if (!user) {
+            message.warning('You must be logged in to add a comment.');
+            navigate('/'); // Redirect to home or login page
+            return;
+        }
+
         if (comment.trim()) {
             try {
-                await dispatch(asyncAddComments(id, user?._id, comment));
+                await dispatch(asyncAddComments(id, user._id, comment));
                 setComment('');
                 setIsModalVisible(false);
             } catch (error) {
@@ -203,11 +216,10 @@ export const ViewPostById = () => {
                     comments.map(comment => (
                         <Card key={comment._id} className="mb-4 shadow-sm rounded-lg">
                             <div className="flex items-center mb-2">
-                               
+                                {/* Add user avatar if available */}
                                 <div className="ml-3">
-                                    <Title level={5} className="mb-0">{comment?.userId?.firstName} {comment.userId.lastName}</Title>
+                                    <Title level={5} className="mb-0">{comment.userId.firstName} {comment.userId.lastName}</Title>
                                     <Paragraph>{comment.text}</Paragraph>
-
                                 </div>
                             </div>
                         </Card>
@@ -245,8 +257,7 @@ export const ViewPostById = () => {
             </Modal>
         </div>
     );
-};
-
+}
 
 export const PublishPost = () => {
     const [form] = Form.useForm();
@@ -257,16 +268,10 @@ export const PublishPost = () => {
 
     const onFinish = async (values) => {
         setLoading(true); // Set loading to true when starting the request
-        try {
             await dispatch(asyncCreateNewPost(values, user._id));
-            message.success('Post published successfully!');
             form.resetFields(); // Reset form fields after successful submission
-            navigate('/view-posts'); // Redirect to posts list or another page as needed
-        } catch (error) {
-            message.error('Failed to publish post. Please try again.');
-        } finally {
-            setLoading(false); // Set loading to false when request is complete
-        }
+           await navigate('/view-posts'); // Redirect to posts list or another page as needed
+       
     };
 
     const onFinishFailed = (errorInfo) => {
@@ -338,12 +343,14 @@ export const PublishPost = () => {
     );
 };
 
+
 export const UpdatePost = () => {
     const { id } = useParams(); // Get postId from the URL
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const [form] = Form.useForm();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Get the post data and current user info from the state
     const { posts, loading, error } = useSelector(state => state.post);
@@ -368,7 +375,12 @@ export const UpdatePost = () => {
     const onFinish = async (values) => {
         if (user && posts && user._id && posts.userId) {
             if (user._id.toString() === posts.userId.toString()) {
-                await dispatch(asyncUpdatePostById(id, values, navigate));
+                setIsSubmitting(true);
+                try {
+                    await dispatch(asyncUpdatePostById(id, values, navigate));
+                } finally {
+                    setIsSubmitting(false);
+                }
             } else {
                 message.error('You are not authorized to update this post.');
             }
@@ -407,8 +419,13 @@ export const UpdatePost = () => {
                     content: posts?.content,
                     excerpt: posts?.excerpt, // Initialize the excerpt field
                 }}
-                className="shadow-lg rounded-lg p-4 bg-white"
+                className="shadow-lg rounded-lg p-4 bg-white relative"
             >
+                {isSubmitting && (
+                    <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-50">
+                        <Spin size="large" />
+                    </div>
+                )}
                 <Form.Item
                     name="title"
                     label="Title"
@@ -434,7 +451,7 @@ export const UpdatePost = () => {
                 </Form.Item>
 
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" className="w-full">
+                    <Button type="primary" htmlType="submit" className="w-full" disabled={isSubmitting}>
                         Update Post
                     </Button>
                 </Form.Item>
@@ -442,4 +459,3 @@ export const UpdatePost = () => {
         </div>
     );
 };
-

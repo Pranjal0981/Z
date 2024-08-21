@@ -76,8 +76,6 @@ export const asyncSignIn = (data,navigate) => async (dispatch) => {
 
         // Save the token and expiration time in localStorage
         localStorage.setItem('token', response.data.token);
-        const expirationTime = Date.now() + (60 * 60 * 1000); // Token expires in 1 hour
-        localStorage.setItem('tokenExpiration', expirationTime);
 
         // Fetch the current user after successful login
         await dispatch(asyncCurrentUser());
