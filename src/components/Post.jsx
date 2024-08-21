@@ -29,7 +29,6 @@ export const ViewPost = () => {
     
     const [searchQuery, setSearchQuery] = useState('');
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const { posts, loading, error } = useSelector(state => state.post);
 
     useEffect(() => {
@@ -119,7 +118,7 @@ export const ViewPostById = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { posts, comments, loading, error } = useSelector(state => state.post);
-    const { user, isAuth } = useSelector(state => state.user);
+    const { user } = useSelector(state => state.user);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [comment, setComment] = useState('');
     console.log(comments)
@@ -251,7 +250,7 @@ export const ViewPostById = () => {
 export const PublishPost = () => {
     const [form] = Form.useForm();
     const dispatch = useDispatch();
-    const {user,isAuth}=useSelector((state)=>state.user)
+    const {user}=useSelector((state)=>state.user)
 
     const onFinish = async(values) => {
         // Dispatch the async action to create a new post

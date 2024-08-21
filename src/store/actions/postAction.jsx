@@ -68,7 +68,7 @@ export const asyncDeletePostById = (postId) => async (dispatch) => {
 };
 
 
-export const asyncSearchPost=(searchTerm)=>async(dispatch,getState)=>{
+export const asyncSearchPost=(searchTerm)=>async(dispatch)=>{
     try {
         const response = await axios.get(`/post/search?title=${searchTerm}`);
        await dispatch(savePosts(response.data)); // Ensure this matches your data structure
@@ -77,7 +77,7 @@ export const asyncSearchPost=(searchTerm)=>async(dispatch,getState)=>{
     }
 }
 
-export const asyncFetchComments=(postId)=>async(dispatch,getState)=>{
+export const asyncFetchComments=(postId)=>async(dispatch)=>{
     try {
         const response=await axios.get(`/post/fetchComments/${postId}`)
         await dispatch(saveComments(response.data.comments))
@@ -86,7 +86,7 @@ export const asyncFetchComments=(postId)=>async(dispatch,getState)=>{
     }
 }
 
-export const asyncAddComments=(postId,userId,data)=>async(dispatch,getState)=>{
+export const asyncAddComments=(postId,userId,data)=>async(dispatch)=>{
     try {
         console.log(postId,userId,data)
         const response=await axios.post(`/post/addComments/${postId}/${userId}`,{data})

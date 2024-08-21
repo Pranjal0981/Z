@@ -1,16 +1,14 @@
-import { useState } from 'react'
 import './App.css'
 import { Route, Routes } from 'react-router-dom'
 import { Login, Profile, Signup } from './components/Auth'
 import Navbar from './components/Nav'
-import { Footer } from 'antd/es/layout/layout'
 import FooterComponent from './components/Footer'
 import { PublishPost, UpdatePost, ViewPost, ViewPostById } from './components/Post'
 import { useSelector } from 'react-redux'
 import { NotFound, Unauthorized } from './components/OtherPages'
 
 function App() {
-const {user,isAuth} =useSelector((state)=>state.user)
+const {isAuth} =useSelector((state)=>state.user)
 console.log(isAuth)
   return (
     <>
