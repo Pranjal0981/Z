@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Button } from 'antd';
+import { Form, Input, Button, Spin, message } from 'antd';
 import { Card, Typography, Spin, Row, Col, Avatar, Divider } from 'antd'; // Ant Design components
 import 'antd/dist/reset.css'; // Import Ant Design styles
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,26 +7,39 @@ import { asyncCurrentUser, asyncSignIn, asyncSignupUser } from '../store/actions
 import { useDispatch, useSelector } from 'react-redux';
 const { Title, Text } = Typography;
 
+
 export const Signup = () => {
     const dispatch = useDispatch();
-  
-    // Form submission handler
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false); // Local state for loading
+
     const handleSubmit = async (values) => {
-        console.log('Received values from form:', values);
-        
-        // Dispatch the action with the form values directly
-        await dispatch(asyncSignupUser(values));
+        setLoading(true); // Set loading to true when starting the request
+        try {
+            await dispatch(asyncSignupUser(values));
+            message.success('Account created successfully!');
+            navigate('/login'); // Redirect to login page after successful signup
+        } catch (error) {
+            message.error('Signup failed. Please try again.');
+        } finally {
+            setLoading(false); // Set loading to false when request is complete
+        }
     };
-  
+
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+            <div className="relative w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+                {loading && (
+                    <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+                        <Spin size="large" />
+                    </div>
+                )}
                 <h2 className="text-2xl font-medium text-gray-800 mb-6 text-center">
                     Create an Account
                 </h2>
                 <Form
                     name="signup"
-                    onFinish={handleSubmit} // Use onFinish for form submission
+                    onFinish={handleSubmit}
                     layout="vertical"
                     initialValues={{ remember: true }}
                 >
@@ -85,6 +98,7 @@ export const Signup = () => {
                             htmlType="submit"
                             block
                             className="bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700"
+                            loading={loading} // Show loader when form is submitting
                         >
                             Sign Up
                         </Button>
@@ -105,74 +119,89 @@ export const Signup = () => {
 
 
 export const Login = () => {
-    const dispatch=useDispatch()
-    // Form submission handler
-    const navigate=useNavigate()
-    const onFinish = async(values) => {
-      console.log('Received values from form:', values);
-      await dispatch(asyncSignIn(values,navigate))
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false); // Local state for loading
+
+    const onFinish = async (values) => {
+        setLoading(true); // Set loading to true when starting the request
+        try {
+            await dispatch(asyncSignIn(values, navigate));
+            message.success('Login successful!');
+        } catch (error) {
+            message.error('Login failed. Please try again.');
+        } finally {
+            setLoading(false); // Set loading to false when request is complete
+        }
     };
-  
+
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-medium text-gray-800 mb-6 text-center">
-            Log In
-          </h2>
-          <Form
-            name="login"
-            onFinish={onFinish}
-            layout="vertical"
-            initialValues={{ remember: true }}
-          >
-            {/* Email */}
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                { required: true, message: 'Please enter your email!' },
-                { type: 'email', message: 'Please enter a valid email!' },
-              ]}
-            >
-              <Input placeholder="john.doe@example.com" className="rounded-md" />
-            </Form.Item>
-  
-            {/* Password */}
-            <Form.Item
-              label="Password"
-              name="password"
-              rules={[
-                { required: true, message: 'Please enter your password!' },
-                { min: 4, message: 'Password must be at least 4 characters long' },
-              ]}
-            >
-              <Input.Password placeholder="••••••••" className="rounded-md" />
-            </Form.Item>
-  
-            {/* Submit Button */}
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                className="bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700"
-              >
-                Log In
-              </Button>
-            </Form.Item>
-          </Form>
-          <div className="text-center mt-4">
-            <p className="text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/" className="text-blue-600 hover:underline">
-                Sign Up
-              </Link>
-            </p>
-          </div>
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <div className="relative w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+                {loading && (
+                    <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+                        <Spin size="large" />
+                    </div>
+                )}
+                <h2 className="text-2xl font-medium text-gray-800 mb-6 text-center">
+                    Log In
+                </h2>
+                <Form
+                    name="login"
+                    onFinish={onFinish}
+                    layout="vertical"
+                    initialValues={{ remember: true }}
+                >
+                    {/* Email */}
+                    <Form.Item
+                        label="Email"
+                        name="email"
+                        rules={[
+                            { required: true, message: 'Please enter your email!' },
+                            { type: 'email', message: 'Please enter a valid email!' },
+                        ]}
+                    >
+                        <Input placeholder="john.doe@example.com" className="rounded-md" />
+                    </Form.Item>
+
+                    {/* Password */}
+                    <Form.Item
+                        label="Password"
+                        name="password"
+                        rules={[
+                            { required: true, message: 'Please enter your password!' },
+                            { min: 4, message: 'Password must be at least 4 characters long' },
+                        ]}
+                    >
+                        <Input.Password placeholder="••••••••" className="rounded-md" />
+                    </Form.Item>
+
+                    {/* Submit Button */}
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            block
+                            className="bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700"
+                            loading={loading} // Show loader when form is submitting
+                        >
+                            Log In
+                        </Button>
+                    </Form.Item>
+                </Form>
+                <div className="text-center mt-4">
+                    <p className="text-gray-600">
+                        Don't have an account?{' '}
+                        <Link to="/" className="text-blue-600 hover:underline">
+                            Sign Up
+                        </Link>
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
     );
 };
+
   
 
 export const Profile = () => {

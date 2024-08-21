@@ -247,15 +247,26 @@ export const ViewPostById = () => {
     );
 };
 
+
 export const PublishPost = () => {
     const [form] = Form.useForm();
     const dispatch = useDispatch();
-    const {user}=useSelector((state)=>state.user)
+    const navigate = useNavigate();
+    const { user } = useSelector((state) => state.user);
+    const [loading, setLoading] = useState(false); // Local state for loading
 
-    const onFinish = async(values) => {
-        // Dispatch the async action to create a new post
-      await  dispatch(asyncCreateNewPost(values,user._id))
-         
+    const onFinish = async (values) => {
+        setLoading(true); // Set loading to true when starting the request
+        try {
+            await dispatch(asyncCreateNewPost(values, user._id));
+            message.success('Post published successfully!');
+            form.resetFields(); // Reset form fields after successful submission
+            navigate('/view-posts'); // Redirect to posts list or another page as needed
+        } catch (error) {
+            message.error('Failed to publish post. Please try again.');
+        } finally {
+            setLoading(false); // Set loading to false when request is complete
+        }
     };
 
     const onFinishFailed = (errorInfo) => {
@@ -305,16 +316,27 @@ export const PublishPost = () => {
                     </Form.Item>
 
                     <Form.Item>
-                        <Button type="primary" htmlType="submit" className="w-full">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full"
+                            loading={loading} // Show loader when form is submitting
+                        >
                             Publish Post
                         </Button>
                     </Form.Item>
                 </Form>
+
+                {/* Show spinner overlay while posting */}
+                {loading && (
+                    <div className="flex justify-center items-center absolute inset-0 bg-gray-500 bg-opacity-50">
+                        <Spin size="large" />
+                    </div>
+                )}
             </Card>
         </div>
     );
 };
-
 
 export const UpdatePost = () => {
     const { id } = useParams(); // Get postId from the URL

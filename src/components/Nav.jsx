@@ -23,7 +23,9 @@ const Navbar = () => {
           <Menu.Item key="1" icon={<UserOutlined />}>
             <Link to="/profile">Profile</Link>
           </Menu.Item>
-        
+          <Menu.Item key="5" icon={<UserOutlined />}>
+          <Link to="/login">Login</Link>
+        </Menu.Item>
           <Menu.Item key="3" icon={<EditOutlined />}>
             <Link to="/publish-post">Publish Post</Link>
           </Menu.Item>
