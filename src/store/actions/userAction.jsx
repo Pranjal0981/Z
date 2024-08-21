@@ -13,8 +13,12 @@ export const asyncCurrentUser = () => async (dispatch) => {
         const token = localStorage.getItem('token');
         const tokenExpiration = localStorage.getItem('tokenExpiration');
 
+        console.log('Token:', token);
+        console.log('Token Expiration:', tokenExpiration);
+
         // If token is not available or has expired, clear the user data
-        if (!token || tokenExpiration < Date.now()) {
+        if (!token || !tokenExpiration || tokenExpiration < Date.now()) {
+            console.log('Token missing or expired');
             dispatch(saveUser(null)); // Dispatch action to clear user data
             return;
         }
@@ -24,10 +28,13 @@ export const asyncCurrentUser = () => async (dispatch) => {
             headers: { Authorization: `Bearer ${token}` }
         });
 
+        console.log('Current User Response:', response);
+
         // Dispatch action to save the current user in the Redux store
         dispatch(saveUser(response.data.user));
     } catch (error) {
         console.error('Error fetching current user:', error);
+
         // Optionally clear user data if fetching current user fails
         dispatch(saveUser(null));
     }
@@ -65,7 +72,7 @@ export const asyncSignupUser = (userData) => async (dispatch) => {
  * It authenticates the user, saves the token and its expiration time, and fetches the current user.
  * If the credentials are invalid, an error message is displayed.
  */
-export const asyncSignIn = (data,navigate) => async (dispatch) => {
+export const asyncSignIn = (data, navigate) => async (dispatch) => {
     try {
         // Log the login data to check its format
         console.log('Login Data:', data);
@@ -76,13 +83,16 @@ export const asyncSignIn = (data,navigate) => async (dispatch) => {
 
         // Save the token and expiration time in localStorage
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('tokenExpiration', response.data.tokenExpiration); // Ensure expiration is saved
 
         // Fetch the current user after successful login
         await dispatch(asyncCurrentUser());
 
         // Display a success message using Ant Design's message component
         message.success("Logged in Successfully!");
-        await navigate('/profile')
+
+        // Navigate to the profile page
+        navigate('/profile');
     } catch (error) {
         if (error.response && error.response.status === 401) {
             // Display an error message if the credentials are invalid
@@ -107,6 +117,10 @@ export const asyncSignOut = (navigate) => async (dispatch) => {
 
         // Dispatch action to remove the user from the Redux store
         dispatch(removeUser());
+
+        // Clear token and expiration from localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('tokenExpiration');
 
         // Display a success message using Ant Design's message component
         message.success("Logout Successfully!");
