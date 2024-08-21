@@ -136,9 +136,7 @@ This project is a web application that allows users to manage posts. It includes
 
    Go to the repository on GitHub and create a pull request for your branch.
 
-## License
 
-This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
