@@ -1,4 +1,3 @@
-Here’s a comprehensive `README.md` file for your project, incorporating the details from the actions you provided:
 
 ```markdown
 # ZuAI Blog Application
