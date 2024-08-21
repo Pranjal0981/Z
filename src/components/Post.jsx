@@ -3,7 +3,7 @@ import 'antd/dist/reset.css';;
 import { asyncAddComments, asyncCreateNewPost, asyncDeletePostById, asyncFetchComments, asyncSearchPost, asyncUpdatePostById, asyncViewPostById, asyncViewPosts } from '../store/actions/postAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CommentOutlined } from '@ant-design/icons'; // Import the Comment icon
 
 const { Title, Paragraph } = Typography;
@@ -87,8 +87,8 @@ export const ViewPost = () => {
                                 hoverable
                                 className="shadow-md rounded-md"
                                 actions={[
-                                    <Button type="link" href={`/view-post/${post._id}`}>View</Button>,
-                                    <Button type="link" href={`/update-post/${post._id}`}>Update</Button>,
+                                    <Link to={`/view-post/${post._id}`}>View</Link>,
+                                    <Link to={`/update-post/${post._id}`}>Update</Link>,
                                     <Button type="link" danger onClick={() => handleDelete(post)}>Delete</Button>
                                 ]}
                             >
@@ -196,8 +196,8 @@ export const ViewPostById = () => {
             <Card
                 className="shadow-lg rounded-lg mb-4"
                 actions={[
-                    <Button type="primary" onClick={handleBack}>Back</Button>,
-                    <Button type="link" href={`/update-post/${id}`}>Edit</Button>,
+                    <Link  onClick={handleBack}>Back</Link>,
+                    <Link to={`/update-post/${id}`}>Edit</Link>,
                     <Button type="link" danger onClick={handleDelete}>Delete</Button>,
                     <Button type="link" onClick={showModal}>
                         <CommentOutlined /> 
