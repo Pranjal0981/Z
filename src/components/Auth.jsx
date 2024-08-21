@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Form, Input, Button, Spin, message } from 'antd';
-import { Card, Typography, Spin, Row, Col, Avatar, Divider } from 'antd'; // Ant Design components
+import { Card, Typography, Row, Col, Avatar, Divider } from 'antd'; // Ant Design components
 import 'antd/dist/reset.css'; // Import Ant Design styles
 import { Link, useNavigate } from 'react-router-dom';
 import { asyncCurrentUser, asyncSignIn, asyncSignupUser } from '../store/actions/userAction';
